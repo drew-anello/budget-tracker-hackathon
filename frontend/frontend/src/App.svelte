@@ -1,10 +1,10 @@
 <script lang="ts">
-  import BudgetChart from './lib/BudgetChart.svelte';
+  import BudgetAnalysis from './lib/BudgetAnalysis.svelte';
 </script>
 
 <main>
   <h1>Budget Analysis Tool</h1>
-  <BudgetChart />
+  <BudgetAnalysis />
 </main>
 
 <style>

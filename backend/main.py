@@ -3,8 +3,9 @@ import anthropic
 import json
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -54,9 +55,28 @@ def send_to_claude(data: FinanceData):
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Finance API"}
+
+@app.get("/test-data")
+async def get_test_data():
+    return TEST_DATA
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    # Here you would process the CSV file
+    # For now, we'll just return a success message
+    return {"message": "File uploaded successfully"}
 
 @app.post("/analyze")
 async def analyze_finance(data: FinanceData):
