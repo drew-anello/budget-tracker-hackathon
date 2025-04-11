@@ -9,20 +9,6 @@
       monthly_surplus: string;
       surplus_percentage: string;
     };
-    essential_expenses: Array<{
-      category: string;
-      amount: string;
-      percentage: string;
-    }>;
-    non_essential_expenses: Array<{
-      category: string;
-      amount: string;
-      percentage: string;
-    }>;
-    recommendations: Array<{
-      category: string;
-      suggestions: string[];
-    }>;
     summary: string;
   }
 
@@ -50,9 +36,16 @@
       }
 
       const data = await analysisResponse.json();
-      // The analysis is already parsed JSON
-      analysis = data.analysis;
+      console.log('Analysis response:', data); // Debug log
+      
+      if (data.analysis) {
+        analysis = data.analysis;
+      } else {
+        console.error('Unexpected response structure:', data);
+        error = 'Unexpected response format';
+      }
     } catch (e) {
+      console.error('Error loading data:', e);
       error = e instanceof Error ? e.message : 'An error occurred';
     } finally {
       loading = false;
@@ -81,73 +74,20 @@
       <div class="analysis-section">
         <h2>Budget Analysis</h2>
         
-        <div class="overview-section">
-          <h3>Overview</h3>
-          <div class="metrics-grid">
-            <div class="metric">
-              <span class="label">Monthly Income</span>
-              <span class="value">{analysis.overview.monthly_income}</span>
-            </div>
-            <div class="metric">
-              <span class="label">Total Expenses</span>
-              <span class="value">{analysis.overview.total_expenses}</span>
-            </div>
-            <div class="metric">
-              <span class="label">Monthly Surplus</span>
-              <span class="value">{analysis.overview.monthly_surplus}</span>
-            </div>
-            <div class="metric">
-              <span class="label">Surplus Percentage</span>
-              <span class="value">{analysis.overview.surplus_percentage}</span>
-            </div>
+        <div class="metrics-section">
+          <div class="metric">
+            <span class="label">Monthly Income</span>
+            <span class="value">{analysis.overview?.income || analysis.overview?.monthly_income || '$0'}</span>
           </div>
-        </div>
-
-        <div class="expenses-section">
-          <div class="expense-type">
-            <h3>Essential Expenses</h3>
-            <ul>
-              {#each analysis.essential_expenses as expense}
-                <li>
-                  <span class="category">{expense.category}</span>
-                  <span class="amount">{expense.amount}</span>
-                  <span class="percentage">{expense.percentage}</span>
-                </li>
-              {/each}
-            </ul>
+          <div class="metric">
+            <span class="label">Total Expenses</span>
+            <span class="value">{analysis.overview.total_expenses || 'N/A'}</span>
           </div>
-
-          <div class="expense-type">
-            <h3>Non-Essential Expenses</h3>
-            <ul>
-              {#each analysis.non_essential_expenses as expense}
-                <li>
-                  <span class="category">{expense.category}</span>
-                  <span class="amount">{expense.amount}</span>
-                  <span class="percentage">{expense.percentage}</span>
-                </li>
-              {/each}
-            </ul>
-          </div>
-        </div>
-
-        <div class="recommendations-section">
-          <h3>Recommendations</h3>
-          {#each analysis.recommendations as category}
-            <div class="recommendation-category">
-              <h4>{category.category}</h4>
-              <ul>
-                {#each category.suggestions as suggestion}
-                  <li>{suggestion}</li>
-                {/each}
-              </ul>
-            </div>
-          {/each}
         </div>
 
         <div class="summary-section">
           <h3>Summary</h3>
-          <p>{analysis.summary}</p>
+          <p>{analysis.summary || 'No summary available'}</p>
         </div>
       </div>
     {/if}
@@ -188,19 +128,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .analysis-section h3 {
-    color: #333;
-    margin: 1.5rem 0 1rem;
-    font-size: 1.2rem;
-  }
-
-  .analysis-section h4 {
-    color: #333;
-    margin: 1rem 0 0.5rem;
-    font-size: 1.1rem;
-  }
-
-  .metrics-grid {
+  .metrics-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
@@ -228,68 +156,15 @@
     font-weight: bold;
   }
 
-  .expenses-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .expense-type ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .expense-type li {
-    background: white;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .expense-type .category {
-    font-weight: 500;
-  }
-
-  .expense-type .amount {
-    color: #333;
-    font-weight: bold;
-  }
-
-  .expense-type .percentage {
-    color: #666;
-    font-size: 0.9rem;
-  }
-
-  .recommendations-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-  }
-
-  .recommendation-category {
-    margin-bottom: 1rem;
-  }
-
-  .recommendation-category ul {
-    list-style-type: disc;
-    margin-left: 1.5rem;
-    color: #333;
-  }
-
-  .recommendation-category li {
-    margin-bottom: 0.5rem;
-  }
-
   .summary-section {
     background: white;
     padding: 1.5rem;
     border-radius: 4px;
+  }
+
+  .summary-section h3 {
+    color: #333;
+    margin-bottom: 1rem;
   }
 
   .summary-section p {
