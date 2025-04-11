@@ -28,6 +28,7 @@
         throw new Error('Failed to get test data');
       }
       testData = await testDataResponse.json();
+      console.log('Test data:', testData); // Debug log
 
       // Get the analysis
       const analysisResponse = await fetch('http://localhost:8000/test-analyze');
@@ -65,9 +66,11 @@
   {:else}
     <div class="chart-section">
       <h2>Budget Breakdown</h2>
-      {#if testData}
-        <BudgetChart data={testData} />
-      {/if}
+      <div class="chart-wrapper">
+        {#if testData}
+          <BudgetChart data={testData} />
+        {/if}
+      </div>
     </div>
 
     {#if analysis}
@@ -77,7 +80,7 @@
         <div class="metrics-section">
           <div class="metric">
             <span class="label">Monthly Income</span>
-            <span class="value">{analysis.overview?.income || analysis.overview?.monthly_income || '$0'}</span>
+            <span class="value">${testData?.income?.toLocaleString() || '0'}</span>
           </div>
           <div class="metric">
             <span class="label">Total Expenses</span>
@@ -108,12 +111,20 @@
     background: #f5f5f5;
     padding: 1.5rem;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
   }
 
   .chart-section h2 {
     color: #333;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     text-align: left;
+  }
+
+  .chart-wrapper {
+    flex: 1;
+    position: relative;
+    min-height: 300px;
   }
 
   .analysis-section {

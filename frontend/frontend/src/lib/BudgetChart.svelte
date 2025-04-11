@@ -1,66 +1,42 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Chart, registerables } from 'chart.js';
+  import Chart from 'chart.js/auto';
 
-  export let data: {
-    income: number;
-    expenses: Array<{
-      category: string;
-      subcategory: string;
-      amount: number;
-      frequency: string;
-      essential: boolean;
-    }>;
-  };
-
-  let chartCanvas: HTMLCanvasElement;
+  export let data: any;
   let chart: Chart | null = null;
+  let chartContainer: HTMLCanvasElement;
 
-  // Register all Chart.js components
-  Chart.register(...registerables);
+  onMount(() => {
+    if (!data || !chartContainer) return;
 
-  const colors = [
-    'rgba(255, 99, 132, 0.5)',
-    'rgba(54, 162, 235, 0.5)',
-    'rgba(255, 206, 86, 0.5)',
-    'rgba(75, 192, 192, 0.5)',
-    'rgba(153, 102, 255, 0.5)',
-    'rgba(255, 159, 64, 0.5)',
-    'rgba(199, 199, 199, 0.5)',
-    'rgba(83, 102, 255, 0.5)',
-    'rgba(40, 159, 64, 0.5)',
-    'rgba(210, 199, 199, 0.5)'
-  ];
-
-  function createChart() {
-    if (!chartCanvas) return;
-    
-    if (chart) {
-      chart.destroy();
-    }
-
-    // Group expenses by category
+    // Calculate total expenses by category
     const categories = new Map<string, number>();
-    data.expenses.forEach(expense => {
+    data.expenses.forEach((expense: any) => {
       const current = categories.get(expense.category) || 0;
       categories.set(expense.category, current + expense.amount);
     });
 
-    const labels = Array.from(categories.keys());
-    const values = Array.from(categories.values());
+    // Sort categories by amount (descending)
+    const sortedCategories = Array.from(categories.entries())
+      .sort((a, b) => b[1] - a[1]);
 
-    const ctx = chartCanvas.getContext('2d');
+    const ctx = chartContainer.getContext('2d');
     if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (chart) {
+      chart.destroy();
+    }
 
     chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels: sortedCategories.map(([category]) => category),
         datasets: [{
-          label: 'Monthly Expenses by Category',
-          data: values,
-          backgroundColor: colors.slice(0, labels.length),
-          borderColor: colors.slice(0, labels.length).map(color => color.replace('0.5', '1')),
+          label: 'Monthly Expenses',
+          data: sortedCategories.map(([_, amount]) => amount),
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 1
         }]
       },
@@ -73,7 +49,7 @@
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: (context) => {
                 const value = context.raw as number;
                 return `$${value.toLocaleString()}`;
               }
@@ -84,35 +60,42 @@
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
-                return '$' + value.toLocaleString();
-              }
+              callback: (value) => `$${value.toLocaleString()}`
+            }
+          },
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
             }
           }
         }
       }
     });
-  }
 
-  $: if (data && chartCanvas) {
-    createChart();
-  }
-
-  onMount(() => {
-    if (data && chartCanvas) {
-      createChart();
-    }
+    return () => {
+      if (chart) {
+        chart.destroy();
+      }
+    };
   });
 </script>
 
 <div class="chart-container">
-  <canvas bind:this={chartCanvas}></canvas>
+  <canvas bind:this={chartContainer}></canvas>
 </div>
 
 <style>
   .chart-container {
     position: relative;
-    height: 100%;
     width: 100%;
+    height: 100%;
+    min-height: 300px;
+    margin-top: 1rem;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 </style> 
