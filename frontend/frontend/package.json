@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -20,7 +20,6 @@
   },
   "dependencies": {
     "chart.js": "^4.4.8",
-    "papaparse": "^5.5.2",
-    "svelte-chartjs": "^3.1.5"
+    "papaparse": "^5.5.2"
   }
 }
