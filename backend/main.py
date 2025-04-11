@@ -43,7 +43,15 @@ def send_to_claude(data: FinanceData):
         model="claude-3-7-sonnet-20250219",
         max_tokens=20000,
         temperature=1,
-        system="Evaluate this budget that is in json format and tell me what ways I can optimize and improve my financial stance",
+        system="""Analyze this budget and provide recommendations in a structured JSON format. 
+        The response should include:
+        - overview: key financial metrics
+        - essential_expenses: breakdown of essential expenses
+        - non_essential_expenses: breakdown of non-essential expenses
+        - recommendations: array of optimization suggestions
+        - summary: brief conclusion
+        Format all monetary values with dollar signs and percentages with % symbols.
+        IMPORTANT: Return ONLY the JSON object, without any markdown formatting or additional text.""",
         messages=[
             {
                 "role": "user",
@@ -51,7 +59,21 @@ def send_to_claude(data: FinanceData):
             }
         ]
     )
-    return message.content
+    
+    # Extract the text content from the response
+    response_text = message.content[0].text
+    
+    # Remove any markdown formatting if present
+    if response_text.startswith("```json"):
+        response_text = response_text[7:]  # Remove ```json
+    if response_text.endswith("```"):
+        response_text = response_text[:-3]  # Remove ```
+    
+    # Parse the JSON to ensure it's valid
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON response from Claude: {str(e)}")
 
 app = FastAPI()
 
@@ -74,8 +96,7 @@ async def get_test_data():
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    # Here you would process the CSV file
-    # For now, we'll just return a success message
+   
     return {"message": "File uploaded successfully"}
 
 @app.post("/analyze")
